@@ -5,7 +5,6 @@
 //  Created by wong on 4/20/25.
 //
 
-
 import SwiftUI
 
 class ColorfulPickerModel: ObservableObject {
@@ -17,18 +16,18 @@ public struct ColorfulPicker: View {
     @Binding var selection: Color?
     @State private var popover: Bool = false
     var title: LocalizedStringKey?
-    var arrowEdge: Edge? = nil
+    var arrowEdge: Edge?
     public init(_ title: LocalizedStringKey? = nil, selection: Binding<Color?>, arrowEdge: Edge? = nil) {
         self.title = title
         self.arrowEdge = arrowEdge
         self._selection = selection
     }
-    
+
     @State private var saturation: CGFloat = 1.0
     @State private var brightness: CGFloat = 1.0
     @State private var hue: CGFloat = 0.0
     @State private var alpha: CGFloat = 1.0
-    
+
     public var body: some View {
         HStack {
             if let title {
@@ -59,7 +58,7 @@ public struct ColorfulPicker: View {
                             .overlay(
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                                        .stroke(lineWidth: 1) .opacity(0.25)
+                                        .stroke(lineWidth: 1).opacity(0.25)
                                     Rectangle()
                                         .fill(.red)
                                         .frame(height: 1)
@@ -74,30 +73,32 @@ public struct ColorfulPicker: View {
             .frame(width: 44, height: 23)
             .popover(isPresented: $popover, arrowEdge: arrowEdge) {
                 ZStack {
+                    #if os(macOS)
                     Color(nsColor: NSColor.windowBackgroundColor).scaleEffect(1.5)
+                    #endif
                     Colorful(
                         hue: $hue,
                         saturation: $saturation,
                         brightness: $brightness,
-                        alpha: $alpha,
+                        alpha: $alpha
                     )
                     .showsAlpha($viewModel.showsAlpha)
-                    .onChange(of: hue, initial: false, { old, val in
+                    .onChange(of: hue, initial: false) { _, _ in
                         changeColor()
-                    })
-                    .onChange(of: brightness, initial: false, { old, val in
+                    }
+                    .onChange(of: brightness, initial: false) { _, _ in
                         changeColor()
-                    })
-                    .onChange(of: saturation, initial: false, { old, val in
+                    }
+                    .onChange(of: saturation, initial: false) { _, _ in
                         changeColor()
-                    })
-                    .onChange(of: alpha, initial: false, { old, val in
+                    }
+                    .onChange(of: alpha, initial: false) { _, _ in
                         changeColor()
-                    })
+                    }
                 }
                 .frame(width: 200, height: 220)
                 .padding()
-                .onAppear() {
+                .onAppear {
                     let selection = selection ?? Color.clear
                     hue = selection.hue
                     saturation = selection.saturation
@@ -107,14 +108,16 @@ public struct ColorfulPicker: View {
             }
         }
     }
+
     private func changeColor() {
         selection = Color(hue: hue, saturation: saturation, brightness: brightness, opacity: alpha)
     }
-    
+
     public func showsAlpha(_ value: Bool) -> ColorfulPicker {
         viewModel.showsAlpha = value
         return self as ColorfulPicker
     }
+
     public func showsAlpha(_ value: Binding<Bool>) -> ColorfulPicker {
         viewModel.showsAlpha = value.wrappedValue
         return self as ColorfulPicker
@@ -131,6 +134,6 @@ public struct ColorfulPicker: View {
         .showsAlpha(false)
         .padding()
     ColorfulPicker(selection: $colorClear, arrowEdge: .top).padding()
-    
+
     color.frame(width: 60, height: 30)
 }
